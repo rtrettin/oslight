@@ -99,6 +99,8 @@ int kmalloctest3(int, char **);
 int kmalloctest4(int, char **);
 int nettest(int, char **);
 
+int tt4(int, char **);
+
 /* Routine for running a user-level program. */
 int runprogram(char *progname);
 
