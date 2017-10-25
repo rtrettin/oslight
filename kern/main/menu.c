@@ -500,6 +500,7 @@ static const char *testmenu[] = {
 	"[fs4] FS write stress 2             ",
 	"[fs5] FS long stress                ",
 	"[fs6] FS create stress              ",
+	"[tt4] Thread test 4		     ",
 	NULL
 };
 
@@ -629,6 +630,8 @@ static struct {
 	{ "semu20",	semu20 },
 	{ "semu21",	semu21 },
 	{ "semu22",	semu22 },
+
+	{"tt4",		tt4},
 
 	/* file system assignment tests */
 	{ "fs1",	fstest },

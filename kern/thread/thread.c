@@ -814,6 +814,23 @@ thread_yield(void)
 	thread_switch(S_READY, NULL, NULL);
 }
 
+int thread_join(struct thread * child) {
+	struct thread *cur = curthread;
+	spinlock_acquire(&child->t_join_lock);
+	if(!child->t_joinable || !(child->t_parent == cur)) {
+		panic("Cannot join thread.");
+	}
+	if(child->t_state == S_EXITED) {
+		cur->t_child_value = child->t_value;
+		thread_make_runnable(child, false);
+		spinlock_release(&child->t_join_lock);
+		return cur->t_child_value;
+	}
+	cur->t_joined = child;
+	thread_switch(S_JOIN, NULL, &child->t_join_lock);
+	return cur->t_child_value;
+}
+
 ////////////////////////////////////////////////////////////
 
 /*
