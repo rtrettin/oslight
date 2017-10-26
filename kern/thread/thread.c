@@ -150,6 +150,13 @@ thread_create(const char *name)
 	thread->t_did_reserve_buffers = false;
 
 	/* If you add to struct thread, be sure to initialize here */
+	thread->t_parent = NULL;
+	thread->t_joinable = false;
+	threadlist_init(&thread->t_children);
+	spinlock_init(&thread->t_join_lock);
+	thread->t_joined = NULL;
+	thread->t_value = 0;
+	thread->t_child_value = 0;
 
 	return thread;
 }
@@ -617,6 +624,15 @@ thread_switch(threadstate_t newstate, struct wchan *wc, struct spinlock *lk)
 		threadlist_addtail(&wc->wc_threads, cur);
 		spinlock_release(lk);
 		break;
+	    case S_JOIN:
+		cur->t_wchan_name = "JOIN";
+		cur->t_state = newstate;
+		spinlock_release(lk);
+		break;
+	    case S_EXITED:
+		cur->t_wchan_name = "ZOMBIE";
+		cur->t_state = newstate;
+		spinlock_release(lk);
 	    case S_ZOMBIE:
 		cur->t_wchan_name = "ZOMBIE";
 		threadlist_addtail(&curcpu->c_zombies, cur);

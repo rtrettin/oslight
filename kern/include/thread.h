@@ -62,6 +62,8 @@ typedef enum {
 	S_READY,	/* ready to run */
 	S_SLEEP,	/* sleeping */
 	S_ZOMBIE,	/* zombie; exited but not yet deleted */
+	S_JOIN,
+	S_EXITED,
 } threadstate_t;
 
 /* Thread structure. */
@@ -104,6 +106,13 @@ struct thread {
 	/*
 	 * Public fields
 	 */
+	struct spinlock t_join_lock;
+	bool t_joinable;
+	struct thread *t_parent;
+	struct threadlist t_children;
+	struct thread *t_joined;
+	int t_value;
+	int t_child_value;
 
 	/* VFS */
 	bool t_did_reserve_buffers;	/* reserve_buffers() in effect */
