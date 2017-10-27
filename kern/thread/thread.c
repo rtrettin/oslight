@@ -152,11 +152,11 @@ thread_create(const char *name)
 	/* If you add to struct thread, be sure to initialize here */
 	thread->t_parent = NULL;
 	thread->t_joinable = false;
-	threadlist_init(&thread->t_children);
-	spinlock_init(&thread->t_join_lock);
 	thread->t_joined = NULL;
 	thread->t_value = 0;
 	thread->t_child_value = 0;
+	threadlist_init(&thread->t_children);
+	spinlock_init(&thread->t_join_lock);
 
 	return thread;
 }
@@ -830,10 +830,10 @@ thread_yield(void)
 	thread_switch(S_READY, NULL, NULL);
 }
 
-int thread_join(struct thread * child) {
+int thread_join(struct thread *child) {
 	struct thread *cur = curthread;
 	spinlock_acquire(&child->t_join_lock);
-	if(!child->t_joinable || !(child->t_parent == cur)) {
+	if(child->t_joinable == false || !(child->t_parent == cur)) {
 		panic("Cannot join thread.");
 	}
 	if(child->t_state == S_EXITED) {

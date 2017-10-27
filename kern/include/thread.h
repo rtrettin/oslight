@@ -106,13 +106,13 @@ struct thread {
 	/*
 	 * Public fields
 	 */
-	struct spinlock t_join_lock;
-	bool t_joinable;
 	struct thread *t_parent;
-	struct threadlist t_children;
 	struct thread *t_joined;
+	struct threadlist t_children;
+	struct spinlock t_join_lock;
 	int t_value;
 	int t_child_value;
+	bool t_joinable;
 
 	/* VFS */
 	bool t_did_reserve_buffers;	/* reserve_buffers() in effect */
@@ -156,7 +156,7 @@ int thread_fork(const char *name, struct proc *proc,
                 void (*func)(void *, unsigned long),
                 void *data1, unsigned long data2);
 
-int thread_join(struct thread * child);
+int thread_join(struct thread *child);
 
 /*
  * Cause the current thread to exit.

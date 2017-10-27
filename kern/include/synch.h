@@ -74,11 +74,10 @@ void V(struct semaphore *);
  */
 struct lock {
         char *lk_name;
-	HANGMAN_LOCKABLE(lk_hangman);
-	volatile bool lock_isLocked;
-	volatile struct thread * lock_thread;
-	struct spinlock lock_spinlock;
-	struct wchan * lock_wchan;
+	struct spinlock lk_spin;
+	struct wchan *lk_wchan;
+	volatile bool lk_isLocked;
+	volatile struct thread * lk_t;
 };
 
 struct lock *lock_create(const char *name);
@@ -116,8 +115,9 @@ bool lock_do_i_hold(struct lock *);
 
 struct cv {
         char *cv_name;
-	struct wchan * cond_wchan;
-	struct spinlock cond_spinlock;
+	struct lock *cv_lk;
+	struct wchan *cv_wchan;
+	struct spinlock cv_spin;
 };
 
 struct cv *cv_create(const char *name);
