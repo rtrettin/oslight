@@ -71,16 +71,16 @@ int frontThread(void *data, unsigned long num) {
 void testlist() {
 	kprintf("testing threads.\n");
 	struct thread *front;
-	thread_fork_joinable("front_thread", NULL, frontThread, NULL, 1, &front);
+	thread_fork("front_thread", NULL, frontThread, NULL, 1, &front);
 	KASSERT(thread_join(front) == 0);
 	kprintf("Testing return immediately passed.\n");
 
 	struct thread *first;
 	struct thread *next;
 	struct thread *third;
-	thread_fork_joinable("append_thread", NULL, appendAndPollThread, NULL, 1, &first);
-	thread_fork_joinable("append_thread", NULL, appendAndPollThread, NULL, 1, &next);
-	thread_fork_joinable("append_thread", NULL, appendAndPollThread, NULL, 1, &third);
+	thread_fork("append_thread", NULL, appendAndPollThread, NULL, 1, &first);
+	thread_fork("append_thread", NULL, appendAndPollThread, NULL, 1, &next);
+	thread_fork("append_thread", NULL, appendAndPollThread, NULL, 1, &third);
 
 	KASSERT(thread_join(first) == 1);
 	KASSERT(thread_join(next) == 1);
@@ -95,7 +95,7 @@ void testlist() {
 	safelist_pop_front(global_list);
 	safelist_pop_front(global_list);
 
-	thread_fork_joinable("append_thread", NULL, appendAndPollThread, NULL, 2, &first);
+	thread_fork("append_thread", NULL, appendAndPollThread, NULL, 2, &first);
 	KASSERT(thread_join(first) == 2);
 
 	safelist_pop_front(global_list);
@@ -105,7 +105,7 @@ void testlist() {
 
 	kprintf("Testing push_back returns correct number.\n");
 
-	thread_fork_joinable("poll_thread", NULL, pollThread, NULL, 1, &first);
+	thread_fork("poll_thread", NULL, pollThread, NULL, 1, &first);
 	clocksleep(1);
 	thread_fork("append_thread", NULL, appendThread, NULL, 3);
 	KASSERT(thread_join(first) == 3);
