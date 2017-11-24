@@ -64,5 +64,6 @@ int sys_open(const_userptr_t filename, int flags, mode_t mode, int *retval);
 int sys_read(int fd, userptr_t buf, size_t size, int *retval);
 int sys_write(int fd, userptr_t buf, size_t size, int *retval);
 int sys_close(int fd);
+int sys_meld(const_userptr_t upath1, const_userptr_t upath2, const_userptr_t upathmerge, int *retval);
 
 #endif /* _SYSCALL_H_ */
