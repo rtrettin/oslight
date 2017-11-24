@@ -133,8 +133,12 @@ syscall(struct trapframe *tf)
                         &retval);
                 break;
 
-            /* Project 3:
-             * Add more for meld, close, and write . */
+	    case SYS_write:
+		err = sys_write(tf->tf_a0, (userptr_t)tf->tf_a1, tf->tf_a2, &retval);
+		break;
+	    case SYS_close:
+		err = sys_close(tf->tf_a0);
+		break;
 
 	    default:
 		kprintf("Unknown syscall %d\n", callno);
