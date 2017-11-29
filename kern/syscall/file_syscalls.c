@@ -64,7 +64,7 @@ sys_read(int fd, userptr_t buf, size_t size, int *retval)
 
 	struct openfile *file;
 	struct iovec iov;
-	struct uio uioUser;
+	struct uio uio_user;
 	char *buffer = (char*)kmalloc(size);
 	result = filetable_get(curproc->p_filetable, fd, &file);
 	if(result) {
@@ -73,8 +73,8 @@ sys_read(int fd, userptr_t buf, size_t size, int *retval)
 	if(file->of_accmode == O_WRONLY) {
 		return EPERM;
 	}
-	uio_kinit(&iov, &uioUser, buffer, size, file->of_offset, UIO_READ);
-	result = VOP_READ(file->of_vnode, &uioUser);
+	uio_kinit(&iov, &uio_user, buffer, size, file->of_offset, UIO_READ);
+	result = VOP_READ(file->of_vnode, &uio_user);
 	if(result) {
 		return result;
 	}
@@ -82,10 +82,9 @@ sys_read(int fd, userptr_t buf, size_t size, int *retval)
 	if(result) {
 		return result;
 	}
-	file->of_offset = uioUser.uio_offset;
+	file->of_offset = uio_user.uio_offset;
 	filetable_put(curproc->p_filetable, fd, file);
-	*retval = size - uioUser.uio_resid;
-
+	*retval = size - uio_user.uio_resid;
 
        return result;
 }
@@ -97,7 +96,7 @@ int sys_write(int fd, userptr_t buf, size_t size, int *retval) {
 	int result = 0;
 	struct openfile *file;
 	struct iovec iov;
-	struct uio uioUser;
+	struct uio uio_user;
 	size_t size1;
 	char *buffer = (char*)kmalloc(size);
 	int sizeInt = size;
@@ -110,14 +109,14 @@ int sys_write(int fd, userptr_t buf, size_t size, int *retval) {
 		return EPERM;
 	}
 	copyinstr((userptr_t)buf, buffer, sizeInt, &size1);
-	uio_kinit(&iov, &uioUser, buffer, size, file->of_offset, UIO_WRITE);
-	result = VOP_WRITE(file->of_vnode, &uioUser);
+	uio_kinit(&iov, &uio_user, buffer, size, file->of_offset, UIO_WRITE);
+	result = VOP_WRITE(file->of_vnode, &uio_user);
 	if(result) {
 		return result;
 	}
-	file->of_offset = uioUser.uio_offset;
+	file->of_offset = uio_user.uio_offset;
 	filetable_put(curproc->p_filetable, fd, file);
-	*retval = size - uioUser.uio_resid;
+	*retval = size - uio_user.uio_resid;
 	kfree(buffer);
 	return result;
 }
@@ -141,38 +140,38 @@ int sys_close(int fd) {
 /* 
 * meld () - combine the content of two files word by word into a new file
 */
-int sys_meld(const_userptr_t upath1, const_userptr_t upath2, const_userptr_t upathmerge, int *retval) {
-	char *kpath1, *kpath2, *kpathmerge;
+int sys_meld(const_userptr_t ufile1, const_userptr_t ufile2, const_userptr_t umerged, int *retval) {
+	char *kfile1, *kfile2, *kmerged;
 	struct openfile *file1, *file2, *filemerge;
 	struct uio read1uio, read2uio, writeuio;
 	struct iovec iov;
 	int result = 0;
 	void *kbuf1, *kbuf2;
 
-	if(upath1 == NULL || upath2 == NULL || upathmerge == NULL) {
+	if(ufile1 == NULL || ufile2 == NULL || umerged == NULL) {
 		return EINVAL;
 	}
 
-	kpath1 = (char *) kmalloc(sizeof(char) * PATH_MAX);
-	kpath2 = (char *) kmalloc(sizeof(char) * PATH_MAX);
-	kpathmerge = (char *) kmalloc(sizeof(char) * PATH_MAX);
+	kfile1 = (char *) kmalloc(sizeof(char) * PATH_MAX);
+	kfile2 = (char *) kmalloc(sizeof(char) * PATH_MAX);
+	kmerged = (char *) kmalloc(sizeof(char) * PATH_MAX);
 
-	result = copyinstr(upath1, kpath1, strlen(((char *)upath1)) + 1, NULL);
+	result = copyinstr(ufile1, kfile1, strlen(((char *)ufile1)) + 1, NULL);
 	if(result) return result;
 
-	result = copyinstr(upath2, kpath2, strlen(((char *)upath2)) + 1, NULL);
+	result = copyinstr(ufile2, kfile2, strlen(((char *)ufile2)) + 1, NULL);
 	if(result) return result;
 
-	result = copyinstr(upathmerge, kpathmerge, strlen(((char *)upathmerge)) + 1, NULL);
+	result = copyinstr(umerged, kmerged, strlen(((char *)umerged)) + 1, NULL);
 	if(result) return result;
 
-	result = openfile_open(kpath1, O_RDONLY, 055, &file1);
+	result = openfile_open(kfile1, O_RDONLY, 055, &file1);
 	if(result) return result;
 
-	result = openfile_open(kpath2, O_RDONLY, 055, &file2);
+	result = openfile_open(kfile2, O_RDONLY, 055, &file2);
 	if(result) return result;
 
-	result = openfile_open(kpathmerge, O_WRONLY|O_CREAT|O_EXCL, 0644, &filemerge);
+	result = openfile_open(kmerged, O_WRONLY|O_CREAT|O_EXCL, 0644, &filemerge);
 	if(result) return result;
 
 	kbuf1 = kmalloc(sizeof(char) * 4);
@@ -234,9 +233,9 @@ int sys_meld(const_userptr_t upath1, const_userptr_t upath2, const_userptr_t upa
 	openfile_decref(file1);
 	openfile_decref(file2);
 	openfile_decref(filemerge);
-	kfree(kpath1);
-	kfree(kpath2);
-	kfree(kpathmerge);
+	kfree(kuser1);
+	kfree(kuser2);
+	kfree(kmerged);
 	kfree(kbuf1);
 	kfree(kbuf2);
 	return 0;
